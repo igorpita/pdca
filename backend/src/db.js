@@ -3,36 +3,15 @@ const path = require('path');
 
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, '../data');
 const DATA_FILE = path.join(DATA_DIR, 'pdca-store.json');
-const SEED_FILE = path.join(__dirname, '../../../scratch/seed_data.json');
 
-function ensureDirectoryExists(dir) {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-}
-
-function loadSeedData() {
-  try {
-    if (fs.existsSync(SEED_FILE)) {
-      const seedRaw = fs.readFileSync(SEED_FILE, 'utf-8');
-      const seed = JSON.parse(seedRaw);
-      return seed.map((p, idx) => ({
-        id: `proj-${Date.now()}-${idx + 1}`,
-        ...p
-      }));
-    }
-  } catch (err) {
-    console.error('Error loading seed file:', err);
-  }
-  
-  // Default fallback project if seed file not accessible
-  return [{
-    id: `proj-default-1`,
+const INITIAL_SEED_DATA = [
+  {
+    id: "proj-incidentes-ti",
     title: "Plano de Redução de Incidentes de TI",
     unit: "TI Infraestrutura",
     location: "Matriz / SP",
     responsible: "Igor Pita / Antoniel",
-    createdAt: new Date().toISOString().split('T')[0],
+    createdAt: "2026-10-05",
     status: "Em Execução",
     identification: {
       problem: "Quantidade de ocorrências de incidentes muito elevada. Acima de 60%",
@@ -59,7 +38,7 @@ function loadSeedData() {
     stratification: [
       { category: "Impressão", count: 30, percentage: 28.85, cumulativePercentage: 28.85 },
       { category: "Software Aplicativo", count: 26, percentage: 25.0, cumulativePercentage: 53.85 },
-      { category: "Manutenção de Equipamentos", count: 19, percentage: 18.27, cumulativePercentage: 72.12 },
+      { category: "Manutenção de Equipamentos de TI::Computador", count: 19, percentage: 18.27, cumulativePercentage: 72.12 },
       { category: "E-mail", count: 15, percentage: 14.42, cumulativePercentage: 86.54 },
       { category: "SAM: Licenciar Software", count: 14, percentage: 13.46, cumulativePercentage: 100.0 }
     ],
@@ -68,12 +47,16 @@ function loadSeedData() {
       { id: "C2", category: "Método", cause: "Chamados são encaminhados diretamente para o N2" },
       { id: "C3", category: "Mão de Obra", cause: "Falta de conhecimento da equipe de N1" },
       { id: "C4", category: "Medida", cause: "Falta de acesso da equipe de N1" },
-      { id: "C5", category: "Método", cause: "Atendimentos realizados fora do fluxo de acionamento da TI" }
+      { id: "C5", category: "Método", cause: "Atendimentos realizados fora do fluxo de acionamento da TI" },
+      { id: "C6", category: "Método", cause: "Atividades do N1 sendo registradas no N2" },
+      { id: "C7", category: "Mão de Obra", cause: "Poucas pessoas no atendimento N1" }
     ],
     hypotheses: [
       { id: "H1", causeId: "C1", causeText: "Licenças de TS ainda não foram ativadas", g: 5, u: 5, t: 4, votes: 10, isInfluential: true },
       { id: "H2", causeId: "C2", causeText: "Chamados são encaminhados diretamente para o N2", g: 4, u: 4, t: 3, votes: 8, isInfluential: true },
-      { id: "H3", causeId: "C3", causeText: "Falta de conhecimento da equipe de N1", g: 4, u: 3, t: 3, votes: 7, isInfluential: true }
+      { id: "H3", causeId: "C3", causeText: "Falta de conhecimento da equipe de N1", g: 4, u: 3, t: 3, votes: 7, isInfluential: true },
+      { id: "H4", causeId: "C4", causeText: "Falta de acesso da equipe de N1", g: 3, u: 3, t: 2, votes: 5, isInfluential: false },
+      { id: "H5", causeId: "C5", causeText: "Atendimentos realizados fora do fluxo de acionamento da TI", g: 2, u: 2, t: 2, votes: 3, isInfluential: false }
     ],
     fiveWhys: [
       {
@@ -89,6 +72,21 @@ function loadSeedData() {
           "Definir quantidade de licenças para cada servidor",
           "Buscar dados do contrato de licenças de TS",
           "Ativar cada servidor com a quantidade de licenças necessárias"
+        ]
+      },
+      {
+        causeText: "Chamados são encaminhados diretamente para o N2",
+        whys: [
+          "Por que os chamados vão direto pro N2? R: O N1 não tem conhecimento/treinamento para solucionar.",
+          "Por que o N1 não tem conhecimento? R: Falta de treinamento estruturado das categorias frequentes.",
+          "Por que falta treinamento? R: Cultura antiga de separar drasticamente as equipes e tarefas.",
+          "Por que mantinha-se essa cultura? R: Antigamente o fluxo funcionava em menor escala sem formalização.",
+          "Causa Raiz: Modelo de triagem e capacitação do N1 desatualizado em relação ao volume atual."
+        ],
+        actions: [
+          "Modernizar a forma de atuação da TI",
+          "Eleger categorias de chamados para treinar o N1",
+          "Realizar sessões de treinamento prático para o time de N1"
         ]
       }
     ],
@@ -139,15 +137,20 @@ function loadSeedData() {
       isGoalAchieved: false,
       nextSteps: "Concluir treinamento do N1 e realizar auditoria mensal do Pareto de Incidentes."
     }
-  }];
+  }
+];
+
+function ensureDirectoryExists(dir) {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 }
 
 function initStore() {
   ensureDirectoryExists(DATA_DIR);
   if (!fs.existsSync(DATA_FILE)) {
-    const seed = loadSeedData();
-    fs.writeFileSync(DATA_FILE, JSON.stringify(seed, null, 2), 'utf-8');
-    console.log(`Initialized database store at ${DATA_FILE} with ${seed.length} projects.`);
+    fs.writeFileSync(DATA_FILE, JSON.stringify(INITIAL_SEED_DATA, null, 2), 'utf-8');
+    console.log(`Initialized database store at ${DATA_FILE} with ${INITIAL_SEED_DATA.length} projects.`);
   }
 }
 
@@ -158,7 +161,7 @@ function readStore() {
     return JSON.parse(content);
   } catch (err) {
     console.error('Error reading store:', err);
-    return [];
+    return INITIAL_SEED_DATA;
   }
 }
 
@@ -217,7 +220,7 @@ module.exports = {
     projects[index] = {
       ...projects[index],
       ...projectData,
-      id // preserve ID
+      id
     };
     writeStore(projects);
     return projects[index];
