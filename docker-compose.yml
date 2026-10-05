@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  pdca-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pdca_masp_system
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATA_DIR=/app/data
+    volumes:
+      - pdca_data:/app/data
+
+volumes:
+  pdca_data:
+    driver: local

@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  pdca-app:
+    image: ghcr.io/${GITHUB_USER:-igorpita}/pdca-masp:latest
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+      - DATA_DIR=/app/data
+    volumes:
+      - pdca_data:/app/data
+    networks:
+      - traefik-public
+    deploy:
+      mode: replicated
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        # Roteamento HTTP/HTTPS para o domínio pdca.vps.oab-ba.org.br
+        - "traefik.http.routers.pdca.rule=Host(`pdca.vps.oab-ba.org.br`)"
+        - "traefik.http.routers.pdca.entrypoints=websecure"
+        - "traefik.http.routers.pdca.tls=true"
+        - "traefik.http.routers.pdca.tls.certresolver=letsencrypt"
+        # Porta interna do container (Node/Express API + Frontend)
+        - "traefik.http.services.pdca.loadbalancer.server.port=3001"
+
+networks:
+  traefik-public:
+    external: true
+
+volumes:
+  pdca_data:
+    driver: local
