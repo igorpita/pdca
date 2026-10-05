@@ -70,7 +70,7 @@ services:
     volumes:
       - pdca_data:/app/data
     networks:
-      - traefik-public
+      - vps
     deploy:
       mode: replicated
       replicas: 1
@@ -81,11 +81,11 @@ services:
         - "traefik.http.routers.pdca.rule=Host(`pdca.vps.oab-ba.org.br`)"
         - "traefik.http.routers.pdca.entrypoints=websecure"
         - "traefik.http.routers.pdca.tls=true"
-        - "traefik.http.routers.pdca.tls.certresolver=letsencrypt"
+        - "traefik.http.routers.pdca.tls.certresolver=letsencryptresolver"
         - "traefik.http.services.pdca.loadbalancer.server.port=3001"
 
 networks:
-  traefik-public:
+  vps:
     external: true
 
 volumes:
