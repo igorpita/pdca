@@ -1,8 +1,8 @@
-version: '3.8'
-
 services:
   pdca-app:
     image: ghcr.io/igorpita/pdca:latest
+    ports:
+      - "3001:3001"
     environment:
       - NODE_ENV=production
       - PORT=3001
@@ -18,12 +18,10 @@ services:
         condition: on-failure
       labels:
         - "traefik.enable=true"
-        # Roteamento HTTP/HTTPS para o domínio pdca.vps.oab-ba.org.br
         - "traefik.http.routers.pdca.rule=Host(`pdca.vps.oab-ba.org.br`)"
         - "traefik.http.routers.pdca.entrypoints=websecure"
         - "traefik.http.routers.pdca.tls=true"
         - "traefik.http.routers.pdca.tls.certresolver=letsencrypt"
-        # Porta interna do container (Node/Express API + Frontend)
         - "traefik.http.services.pdca.loadbalancer.server.port=3001"
 
 networks:

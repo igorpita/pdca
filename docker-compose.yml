@@ -1,10 +1,9 @@
-version: '3.8'
-
 services:
   pdca-app:
     build:
       context: .
       dockerfile: Dockerfile
+    image: ghcr.io/igorpita/pdca:latest
     container_name: pdca_masp_system
     restart: always
     ports:
