@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   pdca-app:
-    image: ghcr.io/${GITHUB_USER:-igorpita}/pdca-masp:latest
+    image: ghcr.io/igorpita/pdca:latest
     environment:
       - NODE_ENV=production
       - PORT=3001

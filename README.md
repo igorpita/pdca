@@ -62,7 +62,7 @@ version: '3.8'
 
 services:
   pdca-app:
-    image: ghcr.io/SEU_USUARIO/pdca:latest
+    image: ghcr.io/igorpita/pdca:latest
     environment:
       - NODE_ENV=production
       - PORT=3001
